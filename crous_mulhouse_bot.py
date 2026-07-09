@@ -37,8 +37,14 @@ TOOL_ID = 47
 
 # Bounding box autour de Mulhouse (coin Nord-Ouest, coin Sud-Est)
 # Zone large pour couvrir toute l'agglomération (Illberg, centre, etc.)
-BOUNDS_NW = {"lon": 7.20, "lat": 47.82}
-BOUNDS_SE = {"lon": 7.42, "lat": 47.69}
+# TEST NANCY — bounds copiés depuis l'URL du site :
+# ?bounds=6.083332452540421_48.74305929625056_6.275249871974014_48.547296478282604
+# (format : lonNO_latNO_lonSE_latSE)
+BOUNDS_NW = {"lon": 6.083332452540421, "lat": 48.74305929625056}
+BOUNDS_SE = {"lon": 6.275249871974014, "lat": 48.547296478282604}
+# MULHOUSE (à remettre après le test) :
+# BOUNDS_NW = {"lon": 7.20, "lat": 47.82}
+# BOUNDS_SE = {"lon": 7.42, "lat": 47.69}
 
 # Intervalle entre deux vérifications (secondes) — 3600 = 1 heure
 CHECK_INTERVAL = 3600
