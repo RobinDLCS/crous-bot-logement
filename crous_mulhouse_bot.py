@@ -37,14 +37,8 @@ TOOL_ID = 47
 
 # Bounding box autour de Mulhouse (coin Nord-Ouest, coin Sud-Est)
 # Zone large pour couvrir toute l'agglomération (Illberg, centre, etc.)
-# TEST NANCY — bounds copiés depuis l'URL du site :
-# ?bounds=6.083332452540421_48.74305929625056_6.275249871974014_48.547296478282604
-# (format : lonNO_latNO_lonSE_latSE)
-BOUNDS_NW = {"lon": 6.083332452540421, "lat": 48.74305929625056}
-BOUNDS_SE = {"lon": 6.275249871974014, "lat": 48.547296478282604}
-# MULHOUSE (à remettre après le test) :
-# BOUNDS_NW = {"lon": 7.20, "lat": 47.82}
-# BOUNDS_SE = {"lon": 7.42, "lat": 47.69}
+BOUNDS_NW = {"lon": 7.20, "lat": 47.82}
+BOUNDS_SE = {"lon": 7.42, "lat": 47.69}
 
 # Intervalle entre deux vérifications (secondes) — 3600 = 1 heure
 CHECK_INTERVAL = 3600
@@ -180,6 +174,19 @@ def notify_discord(new_items: list[dict]) -> None:
     resp.raise_for_status()
 
 
+def notify_nothing(count: int) -> None:
+    """Message discret envoyé quand la recherche n'a rien trouvé de nouveau."""
+    now = datetime.now().strftime("%H:%M")
+    payload = {
+        "content": (f"🔎 [{now}] Recherche effectuée : aucun nouveau logement "
+                    f"à Mulhouse ({count} dispo au total dans la zone).")
+    }
+    try:
+        requests.post(DISCORD_WEBHOOK_URL, json=payload, timeout=15)
+    except requests.RequestException as e:
+        print(f"    Échec de l'envoi Discord (heartbeat) : {e}")
+
+
 def notify_error(message: str) -> None:
     """Prévient sur Discord si le bot plante (silencieux si le webhook échoue)."""
     try:
@@ -215,6 +222,7 @@ def check_once() -> None:
             print(f"    Échec de l'envoi Discord : {e}")
     else:
         print(f"[{now}] Rien de nouveau ({len(current_ids)} logement(s) déjà connus dans la zone).")
+        notify_nothing(len(current_ids))
 
     # On mémorise l'état courant : si un logement disparaît puis revient
     # (nouveau désistement), il sera re-signalé.
