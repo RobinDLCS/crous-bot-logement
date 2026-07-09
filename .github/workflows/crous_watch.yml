@@ -1,0 +1,51 @@
+# Fichier à placer dans : .github/workflows/crous_watch.yml
+#
+# Prérequis dans le repo :
+#   - crous_mulhouse_bot.py à la racine
+#   - Secret DISCORD_WEBHOOK_URL : Settings -> Secrets and variables ->
+#     Actions -> New repository secret
+#
+# L'onglet Actions du repo permet aussi de lancer le bot manuellement
+# grâce à workflow_dispatch (pratique pour tester).
+
+name: Veille CROUS Mulhouse
+
+on:
+  schedule:
+    - cron: '5 * * * *'   # toutes les heures à HH:05 (UTC)
+  workflow_dispatch:        # bouton "Run workflow" pour tester à la main
+
+permissions:
+  contents: write           # nécessaire pour committer crous_state.json
+
+concurrency:
+  group: crous-watch
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Récupérer le repo
+        uses: actions/checkout@v4
+
+      - name: Installer Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Installer les dépendances
+        run: pip install requests
+
+      - name: Vérifier les logements
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: python crous_mulhouse_bot.py --once
+
+      - name: Sauvegarder l'état (crous_state.json)
+        run: |
+          git config user.name "crous-bot"
+          git config user.email "actions@github.com"
+          git add crous_state.json
+          git diff --cached --quiet || git commit -m "maj état CROUS [skip ci]"
+          git push
